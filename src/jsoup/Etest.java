@@ -49,16 +49,58 @@ public class Etest {
 	// https://movie.douban.com/subject/30122633/comments?status=P
 	public static void main(String[] args) throws Exception {
 		// request(url_newuser, "POST", "mobile=13413527257");
-
+		BWMtest bwm = BWMtest.run();
+		int i=0;
 		while (true) {
+			System.out.println("第 "+ (++i) +" 次获取号码：");
+			phone=bwm.getOnePhone();
 			if (isNewUser(phone)) {
+				System.out.println(phone+" >>> 未注册");
 				break;
-			} else {
-				phone = (phone1 += 1) + "" + (phone2 += 1);
 			}
+			System.out.println(phone+" >>> 已注册");
+			bwm.releasePhone(phone,null);
 		}
+		System.out.println("获取图片验证吗：");
 		Map<String, String> captchas = captchas();
+		System.out.println("发送短信验证码：");
 		Map<String, String> sendCode = sendCode(captchas.get("captcha_hash"), captchas.get("captcha_value"));
+		i=0;
+		String msg=null;
+		String code=null;
+		int index=0;
+		while (true) {
+			if (i>14) {
+				System.out.println("短信验证码获取失败...重新取号...");
+				i=0;
+				while (true) {
+					System.out.println("第 "+ (++i) +" 次获取号码：");
+					phone=bwm.getOnePhone();
+					if (isNewUser(phone)) {
+						System.out.println(phone+" >>> 未注册");
+						break;
+					}
+					System.out.println(phone+" >>> 已注册");
+					bwm.releasePhone(phone,null);
+				}
+				System.out.println("获取图片验证吗：");
+				captchas = captchas();
+				System.out.println("发送短信验证码：");
+				sendCode = sendCode(captchas.get("captcha_hash"), captchas.get("captcha_value"));
+			}
+			System.out.println(phone+" 第 "+ (++i) +" 次获取短信：");
+			msg=bwm.getMessage(phone);
+			if (!msg.equals("Null")) {
+				System.out.println(msg);
+				index=msg.indexOf("您的验证码是");
+				code=msg.substring(index+6, index+6+6);
+				sendCode.put("code", code);
+				bwm.releasePhone(phone,null);
+				break;
+			}
+			Thread.sleep(2000);
+		}
+		System.out.println("登录：");
 		Map<String, String> cookie = login(sendCode.get("code"), sendCode.get("token"));
 		// getDocument(initUrl,cookie);
 
@@ -246,7 +288,8 @@ public class Etest {
 		result.put("token", tokenStr);
 		System.out.println("请输入短信验证码");
 		String nextLine = null;
-		nextLine = sin.nextLine();
+//		nextLine = sin.nextLine();
+		
 		result.put("code", nextLine);
 		return result;
 	}

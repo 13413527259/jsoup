@@ -27,6 +27,12 @@ public class Test {
 		Map<String, String> cookie = login();
 		String initUrl=url;
 		getDocument(initUrl,cookie);
+//		int index=0;
+//		String msg="MSG&388&18443587142&【饿了么】您的验证码是619451，在5分钟内有效。如非本人操作请忽略本短信。[End]";
+//		index=msg.indexOf("您的验证码是");
+//		msg=msg.substring(index+6, index+6+6);
+//		System.out.println(msg);
+		
 	}
 	
 	private static Map<String, String> login() throws IOException {

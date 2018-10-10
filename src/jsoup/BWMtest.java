@@ -28,6 +28,8 @@ public class BWMtest {
 		bwm.getDeveloper();
 		System.out.println("登录：");
 		bwm.login();
+		System.out.println("获取平台公告：");
+		bwm.getMessage(null);
 		System.out.println("获取项目列表：");
 //		Map<String, String> items = bwm.getItems();
 //		for (String item : items.keySet()) {
@@ -36,13 +38,14 @@ public class BWMtest {
 		System.out.println("请选择项目，输入项目id：");
 		String itemId=bwm.sin.nextLine();
 		bwm.getPhone("3", itemId);
-		System.out.println("获取平台公共：");
-		bwm.getMessage(null);
 		System.out.println("获取短信内容：");
 		int i=0;
 		String message=null;
 		while (true) {
 			i+=1;
+			if (i>14) {
+				System.out.println("获取验证码失败。次数："+i);
+			}
 			System.out.println("第 " +i +"次获取验证码...");
 			message = bwm.getMessage(null);
 			if (!message.equals("Null")) {
@@ -56,6 +59,17 @@ public class BWMtest {
 		bwm.releasePhone(itemId);
 	}
 
+	public static BWMtest run() throws Exception {
+		BWMtest bwm = new BWMtest();
+		System.out.println("获取openId：");
+		bwm.getDeveloper();
+		System.out.println("登录：");
+		bwm.login();
+		System.out.println("获取平台公告：");
+		bwm.getMessage(null);
+		return bwm;
+	}
+	
 	private boolean getDeveloper() throws Exception {
 		url_Developer = url_Developer.replace("USER", user);
 		openId = HttpUtil.request(url_Developer, "GET", null);
@@ -89,7 +103,14 @@ public class BWMtest {
 		return map;
 	}
 
-	private String[] getPhone(String count, String itemId) throws Exception {
+	public String getOnePhone() throws Exception {
+		url_phone = url_phone.replace("COUNT", "1").replace("ITEMID", "388").replace("TOKEN", token);
+		String respBody = HttpUtil.request(url_phone, "GET", null);
+		respBody=respBody.replace(";", "");
+		return respBody;
+	}
+	
+	public String[] getPhone(String count, String itemId) throws Exception {
 		url_phone = url_phone.replace("COUNT", count).replace("ITEMID", itemId).replace("TOKEN", token);
 		String respBody = HttpUtil.request(url_phone, "GET", null);
 		phoneList = respBody.split(";");
@@ -102,7 +123,7 @@ public class BWMtest {
 		return respBody;
 	}
 	
-	private String releasePhone(String itemId) throws Exception {
+	public String releasePhone(String itemId) throws Exception {
 		String phoneStr="";
 		for (String item : phoneList) {
 			phoneStr+=item+"-"+itemId+";";
@@ -112,7 +133,15 @@ public class BWMtest {
 		return respBody;
 	}
 	
-	private String getMessage(String phone) throws Exception {
+	public String releasePhone(String phone,String itemId) throws Exception {
+		String phoneStr="";
+		phoneStr+=phone+"-"+388+";";
+		url_releasePhone = url_releasePhone.replace("LIST", phoneStr).replace("TOKEN", token);
+		String respBody = HttpUtil.request(url_releasePhone, "GET", null);
+		return respBody;
+	}
+
+	public String getMessage(String phone) throws Exception {
 		url_message = url_message.replace("CODE", "utf8").replace("TOKEN", token);
 		if (phone!=null) {
 			url_message = url_message+"&Phone="+phone;
@@ -120,5 +149,6 @@ public class BWMtest {
 		String respBody = HttpUtil.request(url_message, "GET", null);
 		return respBody;
 	}
+
 
 }
