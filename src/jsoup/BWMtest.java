@@ -10,16 +10,16 @@ public class BWMtest {
 	private static String openId = "";
 	private static String token = "";
 
-	private static String url_host = "http://kapi.yika66.com:20153";
-	private static String url_login = "http://kapi.yika66.com:20153/User/login?uName=USER&pWord=PASS&Developer=OPENID";
-	private static String url_Developer = "http://capi.yika66.com/Code.aspx?uName=USER";
-	private static String url_items = "http://kapi.yika66.com:20153/User/getItems?token=TOKEN&tp=ut";
-	private static String url_phone = "http://kapi.yika66.com:20153/User/getPhone?&NPhone=170|171|175&Count=COUNT&ItemId=ITEMID&token=TOKEN";
-	private static String url_that_phone = "http://kapi.yika66.com:20153/User/getPhone?&Phone=PHONE";
-	private static String url_releasePhone = "http://kapi.yika66.com:20153/User/releasePhone?phoneList=LIST&token=TOKEN";
-	private static String url_message = "http://kapi.yika66.com:20153/User/getMessage?code=CODE&token=TOKEN";	
+	private static final String url_host = "http://kapi.yika66.com:20153";
+	private static final String url_login = "http://kapi.yika66.com:20153/User/login?uName=USER&pWord=PASS&Developer=OPENID";
+	private static final String url_Developer = "http://capi.yika66.com/Code.aspx?uName=USER";
+	private static final String url_items = "http://kapi.yika66.com:20153/User/getItems?token=TOKEN&tp=ut";
+	private static final String url_phone = "http://kapi.yika66.com:20153/User/getPhone?&NPhone=170|171|175&Count=COUNT&ItemId=ITEMID&token=TOKEN";
+	private static final String url_that_phone = "http://kapi.yika66.com:20153/User/getPhone?&Phone=PHONE";
+	private static final String url_releasePhone = "http://kapi.yika66.com:20153/User/releasePhone?phoneList=LIST&token=TOKEN";
+	private static final String url_message = "http://kapi.yika66.com:20153/User/getMessage?code=CODE&token=TOKEN";	
 	private static String[] phoneList=new String[10];
-	
+	private static String url=null;
 	private Scanner sin=new Scanner(System.in);
 	
 	public static void main(String[] args) throws Exception {
@@ -71,8 +71,8 @@ public class BWMtest {
 	}
 	
 	private boolean getDeveloper() throws Exception {
-		url_Developer = url_Developer.replace("USER", user);
-		openId = HttpUtil.request(url_Developer, "GET", null);
+		url = url_Developer.replace("USER", user);
+		openId = HttpUtil.request(url, "GET", null);
 		if (openId != null) {
 			return true;
 		}
@@ -80,8 +80,8 @@ public class BWMtest {
 	}
 
 	private boolean login() throws Exception {
-		url_login = url_login.replace("USER", user).replace("PASS", pass).replace("OPENID", openId);
-		String respBody = HttpUtil.request(url_login, "GET", null);
+		url = url_login.replace("USER", user).replace("PASS", pass).replace("OPENID", openId);
+		String respBody = HttpUtil.request(url, "GET", null);
 		String[] result = respBody.split("&");
 		if (result.length > 0) {
 			token = result[0];
@@ -92,8 +92,8 @@ public class BWMtest {
 
 	private Map<String, String> getItems() throws Exception {
 		Map<String, String> map = new HashMap<>();
-		url_items = url_items.replace("TOKEN", token);
-		String respBody = HttpUtil.request(url_items, "GET", null);
+		url = url_items.replace("TOKEN", token);
+		String respBody = HttpUtil.request(url, "GET", null);
 		String[] items = respBody.split("&");
 		for (int i = 0; i < items.length-1; i++) {
 			if (i==0 || i%3==0) {
@@ -104,22 +104,22 @@ public class BWMtest {
 	}
 
 	public String getOnePhone() throws Exception {
-		url_phone = url_phone.replace("COUNT", "1").replace("ITEMID", "388").replace("TOKEN", token);
-		String respBody = HttpUtil.request(url_phone, "GET", null);
+		url = url_phone.replace("COUNT", "1").replace("ITEMID", "56206").replace("TOKEN", token);
+		String respBody = HttpUtil.request(url, "GET", null);
 		respBody=respBody.replace(";", "");
 		return respBody;
 	}
 	
 	public String[] getPhone(String count, String itemId) throws Exception {
-		url_phone = url_phone.replace("COUNT", count).replace("ITEMID", itemId).replace("TOKEN", token);
-		String respBody = HttpUtil.request(url_phone, "GET", null);
+		url = url_phone.replace("COUNT", count).replace("ITEMID", itemId).replace("TOKEN", token);
+		String respBody = HttpUtil.request(url, "GET", null);
 		phoneList = respBody.split(";");
 		return null;
 	}
 
 	private String getPhone(String phone) throws Exception {
-		url_that_phone = url_that_phone.replace("PHONE", phone);
-		String respBody = HttpUtil.request(url_phone, "GET", null);
+		url = url_that_phone.replace("PHONE", phone);
+		String respBody = HttpUtil.request(url, "GET", null);
 		return respBody;
 	}
 	
@@ -128,25 +128,25 @@ public class BWMtest {
 		for (String item : phoneList) {
 			phoneStr+=item+"-"+itemId+";";
 		}
-		url_releasePhone = url_releasePhone.replace("LIST", phoneStr).replace("TOKEN", token);
-		String respBody = HttpUtil.request(url_releasePhone, "GET", null);
+		url = url_releasePhone.replace("LIST", phoneStr).replace("TOKEN", token);
+		String respBody = HttpUtil.request(url, "GET", null);
 		return respBody;
 	}
 	
 	public String releasePhone(String phone,String itemId) throws Exception {
 		String phoneStr="";
-		phoneStr+=phone+"-"+388+";";
-		url_releasePhone = url_releasePhone.replace("LIST", phoneStr).replace("TOKEN", token);
-		String respBody = HttpUtil.request(url_releasePhone, "GET", null);
+		phoneStr+=phone+"-"+56206+";";
+		url = url_releasePhone.replace("LIST", phoneStr).replace("TOKEN", token);
+		String respBody = HttpUtil.request(url, "GET", null);
 		return respBody;
 	}
 
 	public String getMessage(String phone) throws Exception {
-		url_message = url_message.replace("CODE", "utf8").replace("TOKEN", token);
+		url = url_message.replace("CODE", "utf8").replace("TOKEN", token);
 		if (phone!=null) {
-			url_message = url_message+"&Phone="+phone;
+			url = url+"&Phone="+phone;
 		}
-		String respBody = HttpUtil.request(url_message, "GET", null);
+		String respBody = HttpUtil.request(url, "GET", null);
 		return respBody;
 	}
 

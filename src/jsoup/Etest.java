@@ -41,73 +41,102 @@ public class Etest {
 	public static final String url_send_code = "https://h5.ele.me/restapi/eus/login/mobile_send_code";
 	public static final String url_login = "https://h5.ele.me/restapi/eus/login/login_by_mobile";
 	public static final String url_newuser = "http://ele.hongbao.show/webService/shopGatherController?m=elmNew";
-
+	public static final String url_get_redpacket = "https://h5.ele.me/restapi/traffic/redpacket/check";
+	public static final String url_open_redpacket = "https://h5.ele.me/restapi/traffic/redpacket/open";
 	// https://h5.ele.me/restapi/eus/login/mobile_send_code
 	// https://h5.ele.me/restapi/bgs/poi/search_poi_nearby_alipay?keyword=桂田大厦&offset=0&limit=5
 	// https://accounts.douban.com/login
 	// https://movie.douban.com/subject/30122633
 	// https://movie.douban.com/subject/30122633/comments?status=P
+	public static String[] list=new String[3];
+	public static int success=0;
+	public static String redId=null;
+	public static int openCount=0;
 	public static void main(String[] args) throws Exception {
 		// request(url_newuser, "POST", "mobile=13413527257");
 		BWMtest bwm = BWMtest.run();
-		int i=0;
 		while (true) {
-			System.out.println("第 "+ (++i) +" 次获取号码：");
-			phone=bwm.getOnePhone();
-			if (isNewUser(phone)) {
-				System.out.println(phone+" >>> 未注册");
-				break;
-			}
-			System.out.println(phone+" >>> 已注册");
-			bwm.releasePhone(phone,null);
-		}
-		System.out.println("获取图片验证吗：");
-		Map<String, String> captchas = captchas();
-		System.out.println("发送短信验证码：");
-		Map<String, String> sendCode = sendCode(captchas.get("captcha_hash"), captchas.get("captcha_value"));
-		i=0;
-		String msg=null;
-		String code=null;
-		int index=0;
-		while (true) {
-			if (i>14) {
-				System.out.println("短信验证码获取失败...重新取号...");
-				i=0;
-				while (true) {
-					System.out.println("第 "+ (++i) +" 次获取号码：");
-					phone=bwm.getOnePhone();
-					if (isNewUser(phone)) {
-						System.out.println(phone+" >>> 未注册");
-						break;
-					}
-					System.out.println(phone+" >>> 已注册");
-					bwm.releasePhone(phone,null);
+			Thread.sleep(5000);
+			int i=0;
+			while (true) {
+				Thread.sleep(3000);
+				System.out.println("第 "+ (++i) +" 次获取号码：");
+				phone=bwm.getOnePhone();
+				if (phone.contains("False")) {
+					System.out.println(phone);
+					continue;
 				}
-				System.out.println("获取图片验证吗：");
-				captchas = captchas();
-				System.out.println("发送短信验证码：");
-				sendCode = sendCode(captchas.get("captcha_hash"), captchas.get("captcha_value"));
-			}
-			System.out.println(phone+" 第 "+ (++i) +" 次获取短信：");
-			msg=bwm.getMessage(phone);
-			if (!msg.equals("Null")) {
-				System.out.println(msg);
-				index=msg.indexOf("您的验证码是");
-				code=msg.substring(index+6, index+6+6);
-				sendCode.put("code", code);
+				if (isNewUser(phone)) {
+					System.out.println(phone+" >>> 未注册");
+					break;
+				}
+				System.out.println(phone+" >>> 已注册");
 				bwm.releasePhone(phone,null);
+			}
+			System.out.println("获取图片验证吗：");
+			Map<String, String> captchas = captchas();
+			System.out.println("发送短信验证码：");
+			Map<String, String> sendCode = sendCode(captchas.get("captcha_hash"), captchas.get("captcha_value"));
+			i=0;
+			String msg=null;
+			String code=null;
+			int index=0;
+			while (true) {
+				Thread.sleep(3000);
+				if (i>14) {
+					System.out.println("短信验证码获取失败...重新取号...");
+					i=0;
+					while (true) {
+						Thread.sleep(3000);
+						System.out.println("第 "+ (++i) +" 次获取号码：");
+						phone=bwm.getOnePhone();
+						if (isNewUser(phone)) {
+							System.out.println(phone+" >>> 未注册");
+							break;
+						}
+						System.out.println(phone+" >>> 已注册");
+						bwm.releasePhone(phone,null);
+					}
+					System.out.println("获取图片验证吗：");
+					captchas = captchas();
+					System.out.println("发送短信验证码：");
+					sendCode = sendCode(captchas.get("captcha_hash"), captchas.get("captcha_value"));
+				}
+				System.out.println(phone+" 第 "+ (++i) +" 次获取短信：");
+				msg=bwm.getMessage(phone);
+				if (!msg.equals("Null")&&msg.contains("验证码")) {
+					System.out.println(msg);
+					index=msg.indexOf("您的验证码是");
+					code=msg.substring(index+6, index+6+6);
+					sendCode.put("code", code);
+					bwm.releasePhone(phone,null);
+					break;
+				}
+			}
+			System.out.println("登录：");
+			Map<String, String> cookie = login(sendCode.get("code"), sendCode.get("token"));
+			// getDocument(initUrl,cookie);
+
+			// System.out.println(URLDecoder.decode("http://https%3a%2f%2fh5.ele.me%2fnewretail%2fp%2fchannel%2f%3fchannel%3dsupermarket&geohash%3dws0e6s40trum/",
+			// "utf-8"));
+			System.out.println(cookie);
+			if (openCount==0||openCount%3==0) {
+				System.out.println("取红包");
+				getRedpacket(cookie);	
+			}
+			System.out.println("拆红包");
+			openRedpacket(cookie, redId);
+			
+			
+			if (success>=3) {
 				break;
 			}
-			Thread.sleep(2000);
 		}
-		System.out.println("登录：");
-		Map<String, String> cookie = login(sendCode.get("code"), sendCode.get("token"));
-		// getDocument(initUrl,cookie);
-
-		// System.out.println(URLDecoder.decode("http://https%3a%2f%2fh5.ele.me%2fnewretail%2fp%2fchannel%2f%3fchannel%3dsupermarket&geohash%3dws0e6s40trum/",
-		// "utf-8"));
-		System.out.println(cookie);
 		sin.close();
+		System.out.println("成功列表：");
+		for (int j = 0; j < list.length; j++) {
+			System.out.println( list[j]);
+		}
 	}
 
 	public static String request(String urlStr, String method, String param) throws Exception {
@@ -251,8 +280,42 @@ public class Etest {
 		result.put("captcha_value", nextLine);
 		return result;
 	}
-
-	public static Map<String, String> sendCode(String captcha_hash, String captcha_value)
+	public static Map<String, String> sendCode(String captcha_hash, String captcha_value) throws Exception
+			 {
+		Map<String, String> result = new HashMap<>();
+		String param="mobile="+phone+"&captcha_hash="+captcha_hash+"&captcha_value="+captcha_value;
+		String token=null;
+		try {
+			token = HttpUtil.logRquest(url_send_code, "POST", param);
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println("验证码不正确，请重新输入");
+			String nextLine = null;
+			nextLine = sin.nextLine();
+			if (nextLine.equals("0")) {
+				System.out.println("重新获取验证图片：");
+				Map<String, String> captchas=null;
+				captchas = captchas();
+				nextLine = sin.nextLine();
+				return sendCode(captchas.get("captcha_hash"), nextLine);
+			}else {
+				return sendCode(captcha_hash, nextLine);
+			}
+		}
+		System.out.println(token);
+		JSONParser parser = new JSONParser();
+		// JSONValue.parse("");
+		JSONObject jsonObject = (JSONObject) parser.parse(token);
+		String tokenStr = (String) jsonObject.get("validate_token");
+		result.put("token", tokenStr);
+		System.out.println("请输入短信验证码");
+		String nextLine = null;
+//		nextLine = sin.nextLine();
+		
+		result.put("code", nextLine);
+		return result;
+	}
+	public static Map<String, String> sendCodeJsoup(String captcha_hash, String captcha_value)
 			throws IOException, ParseException {
 		Map<String, String> result = new HashMap<>();
 		Map<String, String> data = new HashMap<>();
@@ -272,7 +335,7 @@ public class Etest {
 			System.out.println("验证码不正确，请重新输入");
 			String nextLine = null;
 			nextLine = sin.nextLine();
-			return sendCode(captcha_hash, nextLine);
+			return sendCodeJsoup(captcha_hash, nextLine);
 		}
 		Request request = connect.request();
 		List<Object> reqData = (ArrayList) request.data();
@@ -334,6 +397,106 @@ public class Etest {
 			System.out.println(item + ">>>" + cookies.get(item));
 		}
 		return cookies;
+	}
+	
+	public static Map<String, String> getRedpacket(Map<String, String> cookie) throws IOException, ParseException {
+		String userId=cookie.get("USERID");
+		Map<String, String> data = new HashMap<>();
+		data.put("user_id", userId);
+		data.put("lat", "23.09339");
+		data.put("lng", "113.315966");
+		data.put("packet_id", "0");
+
+		Connection connect = Jsoup.connect(url_get_redpacket);
+		connect.ignoreContentType(true);
+		connect.cookies(cookie);
+		connect.method(Method.POST);
+		connect.data(data);
+		Document document = null;
+		document = connect.post();
+		String body=document.body().text();
+		System.out.println(body);
+		if (body.contains("成功")) {
+			if (body.contains(userId)) {
+				System.out.println(userId+"这个红包，你已经拆过了");			
+			}
+			JSONParser parser = new JSONParser();
+			// JSONValue.parse("");
+			JSONObject jsonObject = (JSONObject) parser.parse(body);
+			JSONObject jsonData = (JSONObject) parser.parse(jsonObject.get("data").toString());
+			String packetId = jsonData.get("packet_id").toString();
+			cookie.put("packetId", packetId);
+			redId=packetId;
+			System.out.println("取包成功："+packetId);
+			System.out.println("红包金额："+jsonData.get("total_amount"));
+			System.out.println("拆开金额："+jsonData.get("opened_amount"));
+		}
+		Request request = connect.request();
+		List<Object> reqData = (ArrayList) request.data();
+		for (int i = 0; i < reqData.size(); i++) {
+			System.out.println(reqData.get(i));
+		}
+		Response response = connect.response();
+		Map<String, String> cookies = response.cookies();
+		for (String item : cookies.keySet()) {
+			System.out.println(item + ">>>" + cookies.get(item));
+		}
+		return cookie;
+	}
+	
+	public static Map<String, String> openRedpacket(Map<String, String> cookie,String redId) throws IOException, ParseException {
+		String userId=cookie.get("USERID");
+		String packetId=redId==null?cookie.get("packetId"):redId;
+		Map<String, String> data = new HashMap<>();
+		data.put("user_id",userId );
+		data.put("lat", "23.09339");
+		data.put("lng", "113.315966");
+		data.put("packet_id", redId);
+		data.put("nickname", "拆房大队");
+		data.put("avatar", "https://thirdqq.qlogo.cn/g?b=sdk&k=9AFfpMJtickCFia2LIjpYKPQ&s=100&t=1535538633");
+
+		Connection connect = Jsoup.connect(url_open_redpacket);
+		connect.ignoreContentType(true);
+		connect.cookies(cookie);
+		connect.method(Method.POST);
+		connect.data(data);
+		Document document = null;
+		document = connect.post();
+		String body=document.body().text();
+		System.out.println(body);
+		if (body.contains("成功")) {
+			openCount+=1;
+			if (body.contains(userId)) {
+				System.out.println(userId+"这个红包，你已经拆过了");			
+			}
+			JSONParser parser = new JSONParser();
+			// JSONValue.parse("");
+			JSONObject jsonObject = (JSONObject) parser.parse(body);
+			JSONObject jsonData = (JSONObject) parser.parse(jsonObject.get("data").toString());
+			packetId = jsonData.get("packet_id").toString();
+			cookie.put("packetId", packetId);
+			Double openAmount  = Double.valueOf(jsonData.get("opening_amount").toString());
+			if (openAmount!=null && openAmount>0) {
+				list[success]=phone;
+				success+=1;
+				System.out.println(phone+" 成功");
+			}
+			System.out.println("红包ID："+packetId);
+			System.out.println("红包金额："+jsonData.get("total_amount"));
+			System.out.println("拆开金额："+jsonData.get("opening_amount"));
+			System.out.println("未拆金额："+jsonData.get("remaining_amount"));
+		}
+		Request request = connect.request();
+		List<Object> reqData = (ArrayList) request.data();
+		for (int i = 0; i < reqData.size(); i++) {
+			System.out.println(reqData.get(i));
+		}
+		Response response = connect.response();
+		Map<String, String> cookies = response.cookies();
+		for (String item : cookies.keySet()) {
+			System.out.println(item + ">>>" + cookies.get(item));
+		}
+		return cookie;
 	}
 
 	private static void getDocument(String urlStr, Map<String, String> cookie) throws IOException {
