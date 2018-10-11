@@ -74,9 +74,28 @@ public class Etest {
 				bwm.releasePhone(phone,null);
 			}
 			System.out.println("获取图片验证吗：");
-			Map<String, String> captchas = captchas();
+			Map<String, String> captchas = captchasTobase64();
+			System.out.println("检测可用点数：");
+			LZtest.checkPoints();
+			System.out.println("识别验证码：");
+			String captchaResult = null;
+			String captcha_value = null;
+			while (true) {
+				Thread.sleep(5000);
+				captchaResult=LZtest.upload(captchas.get("base64"));
+				JSONParser parser = new JSONParser();
+				JSONObject jsonObject = (JSONObject) parser.parse(captchaResult);
+				Object resultCode = jsonObject.get("code");
+				if (resultCode.toString().equals("0")) {
+					JSONObject jsonData = (JSONObject) parser.parse(jsonObject.get("data").toString());
+					Object code = jsonData.get("recognition");
+					captcha_value=code.toString();
+					System.out.println("识别结果：" + captcha_value);
+					break;
+				}
+			}
 			System.out.println("发送短信验证码：");
-			Map<String, String> sendCode = sendCode(captchas.get("captcha_hash"), captchas.get("captcha_value"));
+			Map<String, String> sendCode = sendCode(captchas.get("captcha_hash"), captcha_value==null?captchas.get("captcha_value"):captcha_value);
 			i=0;
 			String msg=null;
 			String code=null;
@@ -280,6 +299,51 @@ public class Etest {
 		result.put("captcha_value", nextLine);
 		return result;
 	}
+	
+	public static Map<String, String> captchasTobase64() throws IOException, ParseException {
+		Map<String, String> result = new HashMap<>();
+		Map<String, String> data = new HashMap<>();
+		data.put("captcha_str", phone);
+
+		Connection connect = Jsoup.connect(url_captchas);
+		connect.ignoreContentType(true);
+		connect.method(Method.POST);
+		connect.data(data);
+		Document document = connect.post();
+		Request request = connect.request();
+		List<Object> reqData = (ArrayList) request.data();
+		for (int i = 0; i < reqData.size(); i++) {
+			System.out.println(reqData.get(i));
+		}
+		String captcha = document.body().text();
+		System.out.println(captcha);
+		JSONParser parser = new JSONParser();
+		// JSONValue.parse("");
+		JSONObject jsonObject = (JSONObject) parser.parse(captcha);
+		String captcha_hash = (String) jsonObject.get("captcha_hash");
+		result.put("captcha_hash", captcha_hash);
+		String captchaStr = (String) jsonObject.get("captcha_image");
+		if (captchaStr != null) {
+			captchaStr = captchaStr.substring("data:image/jpeg;base64,".length(), captchaStr.length());
+			System.out.println(captchaStr);
+		}
+		BASE64Decoder decoder = new BASE64Decoder();
+		byte[] b = decoder.decodeBuffer(captchaStr);
+		for (int i = 0; i < b.length; ++i) {
+			if (b[i] < 0) {// 调整异常数据
+				b[i] += 256;
+			}
+		}
+		String file = "e://" + new Date().getTime() + ".jpg";
+		System.out.println(file);
+		FileOutputStream fileOutputStream = new FileOutputStream(file);
+		fileOutputStream.write(b);
+		fileOutputStream.flush();
+		fileOutputStream.close();
+		result.put("base64", captchaStr);
+		return result;
+	}
+	
 	public static Map<String, String> sendCode(String captcha_hash, String captcha_value) throws Exception
 			 {
 		Map<String, String> result = new HashMap<>();
