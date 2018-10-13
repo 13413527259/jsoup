@@ -14,7 +14,7 @@ public class BWMtest {
 	private static final String url_login = "http://kapi.yika66.com:20153/User/login?uName=USER&pWord=PASS&Developer=OPENID";
 	private static final String url_Developer = "http://capi.yika66.com/Code.aspx?uName=USER";
 	private static final String url_items = "http://kapi.yika66.com:20153/User/getItems?token=TOKEN&tp=ut";
-	private static final String url_phone = "http://kapi.yika66.com:20153/User/getPhone?&NPhone=170|171|175&Count=COUNT&ItemId=ITEMID&token=TOKEN";
+	private static final String url_phone = "http://kapi.yika66.com:20153/User/getPhone?PhoneType=17&Count=COUNT&ItemId=ITEMID&token=TOKEN";
 	private static final String url_that_phone = "http://kapi.yika66.com:20153/User/getPhone?&Phone=PHONE";
 	private static final String url_releasePhone = "http://kapi.yika66.com:20153/User/releasePhone?phoneList=LIST&token=TOKEN";
 	private static final String url_message = "http://kapi.yika66.com:20153/User/getMessage?code=CODE&token=TOKEN";	
