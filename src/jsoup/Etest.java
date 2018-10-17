@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.json.simple.parser.JSONParser;
@@ -43,6 +44,7 @@ public class Etest {
 	public static final String url_newuser = "http://ele.hongbao.show/webService/shopGatherController?m=elmNew";
 	public static final String url_get_redpacket = "https://h5.ele.me/restapi/traffic/redpacket/check";
 	public static final String url_open_redpacket = "https://h5.ele.me/restapi/traffic/redpacket/open";
+	public static final String url_new_platform = "https://h5.ele.me/restapi/marketing/promotion/refer/USERID";
 	// https://h5.ele.me/restapi/eus/login/mobile_send_code
 	// https://h5.ele.me/restapi/bgs/poi/search_poi_nearby_alipay?keyword=桂田大厦&offset=0&limit=5
 	// https://accounts.douban.com/login
@@ -139,6 +141,9 @@ public class Etest {
 			// System.out.println(URLDecoder.decode("http://https%3a%2f%2fh5.ele.me%2fnewretail%2fp%2fchannel%2f%3fchannel%3dsupermarket&geohash%3dws0e6s40trum/",
 			// "utf-8"));
 			System.out.println(cookie);
+			System.out.println("领取新客：+++++++++++++++++++++++");
+			getNewPlatform(cookie);
+			System.out.println("领取新客：+++++++++++++++++++++++");
 			if (openCount==0||openCount%3==0) {
 				System.out.println("取红包");
 				getRedpacket(cookie);	
@@ -380,7 +385,7 @@ public class Etest {
 		return result;
 	}
 	public static Map<String, String> sendCodeJsoup(String captcha_hash, String captcha_value)
-			throws IOException, ParseException {
+			throws Exception {
 		Map<String, String> result = new HashMap<>();
 		Map<String, String> data = new HashMap<>();
 		data.put("mobile", phone);
@@ -396,10 +401,12 @@ public class Etest {
 			document = connect.post();
 		} catch (Exception e) {
 			e.printStackTrace();
-			System.out.println("验证码不正确，请重新输入");
-			String nextLine = null;
-			nextLine = sin.nextLine();
-			return sendCodeJsoup(captcha_hash, nextLine);
+			System.out.println("验证码不正确，重新获取图片：");
+			Map<String, String> captchasTobase64 = captchasTobase64();
+			System.out.println("识别验证码：");
+			String upload = LZtest.upload(captchasTobase64.get("base64"));
+			System.out.println("发送验证码：");
+			return sendCodeJsoup(captcha_hash, upload);
 		}
 		Request request = connect.request();
 		List<Object> reqData = (ArrayList) request.data();
@@ -461,6 +468,47 @@ public class Etest {
 			System.out.println(item + ">>>" + cookies.get(item));
 		}
 		return cookies;
+	}
+	
+	public static Map<String, String> getNewPlatform(Map<String, String> cookie) throws IOException, ParseException {
+		String userId=cookie.get("USERID");
+		String url=url_new_platform.replace("USERID", userId);
+		Map<String, String> data = new HashMap<>();
+		data.put("refer_code", "bbc9baf3f6a3bf8e8697d6fdf58bcb59");
+		data.put("refer_user_id", "145998491");
+		data.put("phone", phone);
+		data.put("lat", "23.09339");
+		data.put("lng", "113.315966");
+		data.put("platform", "3");
+		data.put("refer_channel_code", "1");
+		data.put("refer_channel_type", "2");
+
+		Connection connect = Jsoup.connect(url);
+		connect.ignoreContentType(true);
+		connect.cookies(cookie);
+		connect.method(Method.POST);
+		connect.data(data);
+		Document document = null;
+		document = connect.post();
+		String body=document.body().text();
+		System.out.println(body);
+		if (body.contains("promotion_items")) {
+			JSONParser parser = new JSONParser();
+			// JSONValue.parse("");
+			JSONObject jsonObject = (JSONObject) parser.parse(body);
+			JSONArray promotion_items = (JSONArray) jsonObject.get("promotion_items");
+			JSONObject item=null;
+			for (int i = 0; i < promotion_items.size(); i++) {
+				item=(JSONObject) promotion_items.get(i);
+				System.out.println("红包领取成功："+item.get("amount")+"----"+item.get("amount"));
+			}
+		}
+		Response response = connect.response();
+		Map<String, String> cookies = response.cookies();
+		for (String item : cookies.keySet()) {
+			System.out.println(item + ">>>" + cookies.get(item));
+		}
+		return cookie;
 	}
 	
 	public static Map<String, String> getRedpacket(Map<String, String> cookie) throws IOException, ParseException {

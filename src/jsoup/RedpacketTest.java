@@ -31,7 +31,7 @@ public class RedpacketTest {
 	}
 
 	public static void main(String[] args) throws Exception {
-		url="https://h5.ele.me/hongbao/?from=groupmessage#hardware_id=&is_lucky_group=True&lucky_number=0&track_id=&platform=0&sn=2a0faaddbe1ef487&theme_id=3217&device_id=&refer_user_id=12180639";
+		url="https://h5.ele.me/hongbao/#hardware_id=&is_lucky_group=True&lucky_number=0&track_id=&platform=0&sn=11074944822b2432&theme_id=569&device_id=&refer_user_id=145998491";
 		Map<String, Object> param=new HashMap<>();
 		param.put("device_id", "");
 		param.put("hardware_id", "");
@@ -51,7 +51,7 @@ public class RedpacketTest {
 		String sign=null;
 		String trackId =null;
 		int i=0;
-		while (i<5) {
+		while (i<luckyNumber) {
 			synchronized ("test") {
 				Thread.sleep(1000);
 				param.put("phone", getPhone(cookies[i]));
