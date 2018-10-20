@@ -31,7 +31,7 @@ public class RedpacketTest {
 	}
 
 	public static void main(String[] args) throws Exception {
-		url="https://h5.ele.me/hongbao/?from=groupmessage#hardware_id=&is_lucky_group=True&lucky_number=0&track_id=&platform=0&sn=2a0faaddbe1ef487&theme_id=3217&device_id=&refer_user_id=12180639";
+		url="https://h5.ele.me/hongbao/#hardware_id=&is_lucky_group=True&lucky_number=0&track_id=&platform=0&sn=1107b41e35ab248c&theme_id=3241&device_id=&refer_user_id=145998491";
 		Map<String, Object> param=new HashMap<>();
 		param.put("device_id", "");
 		param.put("hardware_id", "");
@@ -47,6 +47,7 @@ public class RedpacketTest {
 		int luckyNumber = getLuckyNumber(url);
 		System.out.println("最大包是："+luckyNumber);
 		int openCount =0;
+		Map<String, Object> redpacks=null;
 		String paramStr=null;
 		String sign=null;
 		String trackId =null;
@@ -61,8 +62,14 @@ public class RedpacketTest {
 				param.put("track_id", trackId);
 				paramStr=JSONObject.toJSONString(param);
 				System.out.println(paramStr);
-				openCount = openRedpacket(paramStr,cookies[i]);
-				System.out.println("开包数量："+openCount);
+				redpacks = openRedpacket(paramStr,cookies[i]);
+				if (redpacks==null) {
+					System.out.println("开包失败："+getPhone(cookies[i]));
+				}else {
+					openCount = (int) redpacks.get("openCount");
+					System.out.println("开包数量："+ openCount);
+					System.out.println("红包："+redpacks.get("redpacket"));
+				}
 				if (openCount==luckyNumber-1) {
 					break;
 				}
@@ -144,7 +151,8 @@ public class RedpacketTest {
 		return null;
 	}
 
-	public static int openRedpacket(String param, String cookie) throws Exception {
+	public static Map<String, Object> openRedpacket(String param, String cookie) throws Exception {
+		Map<String, Object> result=new HashMap<>();
 		String openId = getOpenId(cookie);
 		url = url_openRedpacket.replace("OPENID", openId);
 		String body = HttpUtil.logRquest(url, "POST", param, cookie);
@@ -152,9 +160,20 @@ public class RedpacketTest {
 			JSONParser parser = new JSONParser();
 			JSONObject jsonObject = (JSONObject) parser.parse(body);
 			JSONArray promotion_records = (JSONArray) jsonObject.get("promotion_records");
-			int size = promotion_records.size();
-			return size;
+			int openCount = promotion_records.size();
+			result.put("openCount", openCount);
+			JSONArray promotion_items = (JSONArray) jsonObject.get("promotion_items");
+			String redpacketStr="";
+			JSONObject redpacketItem=null;
+			for (int i = 0; i < promotion_items.size(); i++) {
+				redpacketItem=(JSONObject) promotion_items.get(i);
+				redpacketStr+=redpacketItem.get("sum_condition")+" - "+redpacketItem.get("amount")+" , ";
+			}
+			redpacketStr=redpacketStr.substring(0,redpacketStr.length()-1);
+			result.put("redpacket", redpacketStr);
+			
+			return result;
 		}
-		return 0;
+		return null;
 	}
 }

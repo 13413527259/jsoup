@@ -50,8 +50,8 @@ public class Etest {
 	// https://movie.douban.com/subject/30122633/comments?status=P
 	public static String[] list=new String[3];
 	public static int success=0;
-	public static String redId=null;
-	public static int openCount=0;
+	public static String redId="15399680091045098";
+	public static int openCount=1;
 	public static void main(String[] args) throws Exception {
 		// request(url_newuser, "POST", "mobile=13413527257");
 		BWMtest bwm = BWMtest.run();
@@ -353,18 +353,11 @@ public class Etest {
 			token = HttpUtil.logRquest(url_send_code, "POST", param);
 		} catch (Exception e) {
 			e.printStackTrace();
-			System.out.println("验证码不正确，请重新输入");
-			String nextLine = null;
-			nextLine = sin.nextLine();
-			if (nextLine.equals("0")) {
-				System.out.println("重新获取验证图片：");
+				System.out.println("验证码不正确，重新获取验证图片：");
 				Map<String, String> captchas=null;
-				captchas = captchas();
-				nextLine = sin.nextLine();
-				return sendCode(captchas.get("captcha_hash"), nextLine);
-			}else {
-				return sendCode(captcha_hash, nextLine);
-			}
+				captchas = captchasTobase64();
+				String lz_captcha_value = LZtest.upload(captchas.get("base64"));
+				return sendCode(captchas.get("captcha_hash"), lz_captcha_value);
 		}
 		System.out.println(token);
 		JSONParser parser = new JSONParser();
@@ -380,7 +373,7 @@ public class Etest {
 		return result;
 	}
 	public static Map<String, String> sendCodeJsoup(String captcha_hash, String captcha_value)
-			throws IOException, ParseException {
+			throws Exception {
 		Map<String, String> result = new HashMap<>();
 		Map<String, String> data = new HashMap<>();
 		data.put("mobile", phone);
@@ -396,10 +389,11 @@ public class Etest {
 			document = connect.post();
 		} catch (Exception e) {
 			e.printStackTrace();
-			System.out.println("验证码不正确，请重新输入");
-			String nextLine = null;
-			nextLine = sin.nextLine();
-			return sendCodeJsoup(captcha_hash, nextLine);
+			System.out.println("验证码不正确，重新获取图片");
+			Map<String, String> captchas=null;
+			captchas = captchasTobase64();
+			String lz_captcha_value = LZtest.upload(captchas.get("base64"));
+			return sendCodeJsoup(captcha_hash, lz_captcha_value);
 		}
 		Request request = connect.request();
 		List<Object> reqData = (ArrayList) request.data();
