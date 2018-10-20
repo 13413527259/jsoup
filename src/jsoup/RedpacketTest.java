@@ -31,11 +31,7 @@ public class RedpacketTest {
 	}
 
 	public static void main(String[] args) throws Exception {
-<<<<<<< HEAD
 		url="https://h5.ele.me/hongbao/#hardware_id=&is_lucky_group=True&lucky_number=0&track_id=&platform=0&sn=1107b41e35ab248c&theme_id=3241&device_id=&refer_user_id=145998491";
-=======
-		url="https://h5.ele.me/hongbao/#hardware_id=&is_lucky_group=True&lucky_number=0&track_id=&platform=0&sn=11074944822b2432&theme_id=569&device_id=&refer_user_id=145998491";
->>>>>>> 80849487c1064062297054eeaf7de57b4cd80498
 		Map<String, Object> param=new HashMap<>();
 		param.put("device_id", "");
 		param.put("hardware_id", "");
@@ -173,11 +169,33 @@ public class RedpacketTest {
 				redpacketItem=(JSONObject) promotion_items.get(i);
 				redpacketStr+=redpacketItem.get("sum_condition")+" - "+redpacketItem.get("amount")+" , ";
 			}
-			redpacketStr=redpacketStr.substring(0,redpacketStr.length()-1);
+			if (!redpacketStr.equals("")) {
+				redpacketStr=redpacketStr.substring(0,redpacketStr.length()-3);
+			}
 			result.put("redpacket", redpacketStr);
 			
 			return result;
 		}
 		return null;
+	}
+	public static boolean isNewUser(String param, String cookie) throws Exception {
+		String openId = getOpenId(cookie);
+		url = url_openRedpacket.replace("OPENID", openId);
+		String body = HttpUtil.logRquest(url, "POST", param, cookie);
+		if (body != null) {
+			JSONParser parser = new JSONParser();
+			JSONObject jsonObject = (JSONObject) parser.parse(body);
+			JSONArray promotion_items = (JSONArray) jsonObject.get("promotion_items");
+			JSONObject redpacketItem=null;
+			boolean isnewuser=false;
+			for (int i = 0; i < promotion_items.size(); i++) {
+				redpacketItem=(JSONObject) promotion_items.get(i);
+				isnewuser=(boolean) redpacketItem.get("is_new_user");
+				if (isnewuser) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 }

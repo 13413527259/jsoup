@@ -8,7 +8,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -18,7 +17,6 @@ import java.util.Scanner;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.jsoup.Connection;
@@ -394,20 +392,11 @@ public class Etest {
 			document = connect.post();
 		} catch (Exception e) {
 			e.printStackTrace();
-<<<<<<< HEAD
 			System.out.println("验证码不正确，重新获取图片");
 			Map<String, String> captchas=null;
 			captchas = captchasTobase64();
 			String lz_captcha_value = LZtest.upload(captchas.get("base64"));
 			return sendCodeJsoup(captcha_hash, lz_captcha_value);
-=======
-			System.out.println("验证码不正确，重新获取图片：");
-			Map<String, String> captchasTobase64 = captchasTobase64();
-			System.out.println("识别验证码：");
-			String upload = LZtest.upload(captchasTobase64.get("base64"));
-			System.out.println("发送验证码：");
-			return sendCodeJsoup(captcha_hash, upload);
->>>>>>> 80849487c1064062297054eeaf7de57b4cd80498
 		}
 		Request request = connect.request();
 		List<Object> reqData = (ArrayList) request.data();
