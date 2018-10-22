@@ -31,7 +31,7 @@ public class RedpacketTest {
 	}
 
 	public static void main(String[] args) throws Exception {
-		url="https://h5.ele.me/hongbao/#hardware_id=&is_lucky_group=True&lucky_number=0&track_id=&platform=0&sn=11074944822b2432&theme_id=569&device_id=&refer_user_id=145998491";
+		url="https://h5.ele.me/hongbao/#hardware_id=&is_lucky_group=True&lucky_number=0&track_id=&platform=0&sn=110793922a2a7c32&theme_id=3233&device_id=&refer_user_id=2238853242";
 		Map<String, Object> param=new HashMap<>();
 		param.put("device_id", "");
 		param.put("hardware_id", "");
